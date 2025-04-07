@@ -8,7 +8,7 @@ TaskSchedulerDep = Annotated[TaskScheduler, Depends(get_task_scheduler)]
 
 
 @task_router.get("")
-async def get_tasks(task_scheduler: TaskSchedulerDep) -> dict[str, TaskMetadata]:
+async def list_tasks(task_scheduler: TaskSchedulerDep) -> dict[str, TaskMetadata]:
     return dict(
         [(task_id, task.metadata) for task_id, task in task_scheduler.tasks.items()]
     )

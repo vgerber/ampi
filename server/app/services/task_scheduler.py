@@ -1,8 +1,7 @@
-from multiprocessing import Process
-from typing import Annotated, Callable
+from importlib import import_module
+from typing import Annotated
 from pydantic import BaseModel, Field
 
-from app.actions.print_hello import run
 import asyncio
 
 
@@ -20,7 +19,8 @@ class Task:
         )
 
     async def _run_action(self, action: str, arguments: dict):
-        await run(**arguments)
+        module = import_module(package="app.actions", name=f".{action}")
+        await getattr(module, "run")(**arguments)
 
 
 class TaskScheduler:
