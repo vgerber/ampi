@@ -1,5 +1,6 @@
 from importlib import import_module
 from typing import Annotated
+from app.services.devices_service import DevicesService
 from pydantic import BaseModel, Field
 
 import asyncio
@@ -7,20 +8,21 @@ import asyncio
 
 class TaskMetadata(BaseModel):
     name: Annotated[str, Field(default="task", description="Name of task")]
+    device_name: Annotated[str, Field(description="Name of device")]
     action: Annotated[str, Field(description="Name of action")]
     arguments: Annotated[dict, Field(default=dict(), description="Action arguments")]
 
 
 class Task:
-    def __init__(self, metadata: TaskMetadata):
+    def __init__(self, metadata: TaskMetadata, device_ip: str):
         self.metadata = metadata
         self.task = asyncio.create_task(
-            self._run_action(metadata.action, metadata.arguments)
+            self._run_action(device_ip, metadata.action, metadata.arguments)
         )
 
-    async def _run_action(self, action: str, arguments: dict):
+    async def _run_action(self, device_ip: str, action: str, arguments: dict):
         module = import_module(package="app.actions", name=f".{action}")
-        await getattr(module, "run")(**arguments)
+        await getattr(module, "run")(device_ip, **arguments)
 
 
 class TaskScheduler:
@@ -31,9 +33,10 @@ class TaskScheduler:
     def has_task(self, task_name: str) -> bool:
         return task_name in self.tasks
 
-    async def add_task(self, task_metadata: TaskMetadata):
+    async def add_task(self, device_ip: str, task_metadata: TaskMetadata):
         async with self.tasks_lock:
             task = Task(
+                device_ip=device_ip,
                 metadata=task_metadata,
             )
             task.task.add_done_callback(
