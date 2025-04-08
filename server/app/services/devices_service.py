@@ -6,8 +6,9 @@ import requests
 
 
 class DeviceData(BaseModel):
-    ip: str
-    name: str
+    def __init__(self, ip: str, name: str):
+        self.ip = ip
+        self.name = name
 
 
 class DevicesService:
