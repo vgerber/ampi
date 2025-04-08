@@ -86,6 +86,16 @@ void redirectToStates() {
   server.send (302, "text/plain", "");
 }
 
+void sendMeta() {
+  setCrossOrigin();
+  server.send (200, "text/plain", "ampi-client");
+}
+
+void sendName() {
+  setCrossOrigin();
+  server.send (200, "text/plain", "vgerber");
+}
+
 void setup() {
   
   Serial.begin(115200);         // Start the Serial communication to send messages to the computer
@@ -127,11 +137,9 @@ void setup() {
   Serial.print("IP address:\t");
   Serial.println(WiFi.localIP());         // Send the IP address of the ESP8266 to the computer
 
-  if (MDNS.begin("vgerber-light")) {
-    Serial.println("MDNS responder started");
-  }
-
   server.on("/", HTTP_GET, redirectToStates);
+  server.on("/ampi", HTTP_GET, sendMeta);
+  server.on("/name", HTTP_GET, sendName);
   server.on("/states", HTTP_GET, sendState);
   server.on("/states", HTTP_PUT, setState);
   server.on("/states", HTTP_OPTIONS, sendCrossOriginHeader);
