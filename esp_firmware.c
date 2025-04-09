@@ -22,7 +22,7 @@ ESP8266WebServer server(80);
 void setCrossOrigin(){
   server.sendHeader(F("Access-Control-Allow-Origin"), F("*"));
   server.sendHeader(F("Access-Control-Max-Age"), F("600"));
-  server.sendHeader(F("Access-Control-Allow-Methods"), F("PUT,GET,OPTIONS"));
+  server.sendHeader(F("Access-Control-Allow-Methods"), F("PATCH,GET,OPTIONS"));
   server.sendHeader(F("Access-Control-Allow-Headers"), F("*"));
 };
 
@@ -141,7 +141,7 @@ void setup() {
   server.on("/ampi", HTTP_GET, sendMeta);
   server.on("/name", HTTP_GET, sendName);
   server.on("/states", HTTP_GET, sendState);
-  server.on("/states", HTTP_PUT, setState);
+  server.on("/states", HTTP_PATCH, setState);
   server.on("/states", HTTP_OPTIONS, sendCrossOriginHeader);
   server.onNotFound(handleNotFound);
 
