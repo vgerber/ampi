@@ -3,9 +3,8 @@ import subprocess
 import requests
 
 class DeviceData(BaseModel):
-    def __init__(self, ip: str, name: str):
-        self.ip = ip
-        self.name = name
+    ip: str
+    name: str
 
     @property
     def states(self) -> dict:
