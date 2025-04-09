@@ -1,44 +1,54 @@
-from importlib import import_module
-from typing import Annotated
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import subprocess
 import requests
-
 
 class DeviceData(BaseModel):
     def __init__(self, ip: str, name: str):
         self.ip = ip
         self.name = name
 
+    @property
+    def states(self) -> dict:
+        return requests.get(f"http://{self.ip}/states").json()
+
+    def set_states(self, states: dict) -> dict:
+        return requests.patch(f"http://{self.ip}/states", json=states).json()
 
 class DevicesService:
     def __init__(self):
-        self.devices: list[DeviceData] = []
+        self.devices: dict[str, DeviceData] = {}
 
     def get_devices(self, interface="wlan0") -> list[DeviceData]:
+        # Get devices connected to access point on interface
         arpa = subprocess.check_output(("arp", "-a")).decode("ascii")
         entries = arpa.split("\n")
         ips = [e.split(" ")[1][1:-1] for e in entries if e.split(" ")[-1] == interface]
 
-        devices = []
+        self.devices = {}
+
         for ip in ips:
             try:
-                if not requests.get(f"http://{ip}/ampi", timeout=1).text.startswith(
+                if not requests.get(f"http://{ip}/ampi", timeout=3).text.startswith(
                     "ampi-client"
                 ):
                     continue
                 name = requests.get(f"http://{ip}/name").text
-                devices.append(DeviceData(ip, name))
-            except Exception as _:
-                pass
-        self.devices = devices
-        return devices
+                self.devices[name] = DeviceData(ip=ip, name=name)
+            except Exception as ex:
+                print(ex)
+        return list(self.devices.values())
+
+    def has_device(self, name: str) -> bool:
+        return name in self.devices
 
     def get_device_ip(self, name: str) -> str | None:
-        for device in self.devices:
-            if device.name == name:
-                return device.ip
-        return None
+        return self.devices[name].ip
+    
+    def get_device_state(self, name: str) -> dict:
+        return self.devices[name].states
+    
+    def set_device_state(self, name: str, states: dict) -> dict:
+        return self.devices[name].set_states(states)
 
 
 _devices_service = DevicesService()
