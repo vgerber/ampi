@@ -25,13 +25,13 @@ async def add_task(
     if task_scheduler.has_task(task_metadata.name):
         raise HTTPException(status_code=419, detail="Task name is taken")
 
-    device_ip = devices_service.get_device_ip(task_metadata.device_name)
-    if device_ip is None:
+    
+    if not devices_service.has_device(task_metadata.device_name):
         raise HTTPException(
             status_code=404, detail="Device not found. Fetch devices to update list"
         )
 
-    await task_scheduler.add_task(device_ip, task_metadata)
+    await task_scheduler.add_task(devices_service.get_device(task_metadata.device_name), task_metadata)
 
 
 @task_router.delete("")

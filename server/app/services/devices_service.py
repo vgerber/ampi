@@ -40,9 +40,9 @@ class DevicesService:
 
     def has_device(self, name: str) -> bool:
         return name in self.devices
-
-    def get_device_ip(self, name: str) -> str | None:
-        return self.devices[name].ip
+    
+    def get_device(self, name: str) -> DeviceData:
+        return self.devices[name]
     
     def get_device_state(self, name: str) -> dict:
         return self.devices[name].states

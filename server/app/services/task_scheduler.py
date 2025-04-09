@@ -1,6 +1,6 @@
 from importlib import import_module
 from typing import Annotated
-from app.services.devices_service import DevicesService
+from app.services.devices_service import DeviceData, DevicesService
 from pydantic import BaseModel, Field
 
 import asyncio
@@ -14,15 +14,18 @@ class TaskMetadata(BaseModel):
 
 
 class Task:
-    def __init__(self, metadata: TaskMetadata, device_ip: str):
+    def __init__(self, metadata: TaskMetadata, device: DeviceData):
         self.metadata = metadata
         self.task = asyncio.create_task(
-            self._run_action(device_ip, metadata.action, metadata.arguments)
+            self._run_action(device, metadata.action, metadata.arguments)
         )
 
-    async def _run_action(self, device_ip: str, action: str, arguments: dict):
-        module = import_module(package="app.actions", name=f".{action}")
-        await getattr(module, "run")(device_ip, **arguments)
+    async def _run_action(self, device: DeviceData, action: str, arguments: dict):
+        try:
+            module = import_module(package="app.actions", name=f".{action}")
+            await getattr(module, "run")(device, **arguments)
+        except Exception as ex:
+            print(ex)
 
 
 class TaskScheduler:
@@ -33,10 +36,10 @@ class TaskScheduler:
     def has_task(self, task_name: str) -> bool:
         return task_name in self.tasks
 
-    async def add_task(self, device_ip: str, task_metadata: TaskMetadata):
+    async def add_task(self, device: DeviceData, task_metadata: TaskMetadata):
         async with self.tasks_lock:
             task = Task(
-                device_ip=device_ip,
+                device=device,
                 metadata=task_metadata,
             )
             task.task.add_done_callback(
@@ -45,6 +48,7 @@ class TaskScheduler:
             self.tasks[task_metadata.name] = task
 
     async def remove_task(self, task_name: str):
+        print(f"{task_name} completed")
         async with self.tasks_lock:
             if not self.has_task(task_name):
                 return
