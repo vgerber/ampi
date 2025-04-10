@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM arm64v8/python:3.12-slim
 
 # Install uv.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -10,5 +10,8 @@ COPY . /app
 WORKDIR /app
 RUN uv sync --frozen --no-cache
 
+# Add net-tools because arp is needed to query connected access point devices
+RUN apt update
+RUN apt install net-tools
 # Run the application.
-CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "80", "--host", "0.0.0.0"]
+CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "3333", "--host", "0.0.0.0"]
