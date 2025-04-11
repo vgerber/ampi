@@ -13,5 +13,8 @@ RUN uv sync --frozen --no-cache
 # Add net-tools because arp is needed to query connected access point devices
 RUN apt update
 RUN apt install net-tools
+
+ENV PORT=80
+
 # Run the application.
-CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "3333", "--host", "0.0.0.0"]
+CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "${PORT}", "--host", "0.0.0.0"]
