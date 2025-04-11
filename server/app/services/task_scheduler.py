@@ -1,6 +1,6 @@
 from importlib import import_module
 from typing import Annotated
-from app.services.devices_service import DeviceData, DevicesService
+from app.services.devices_service import DeviceData
 from pydantic import BaseModel, Field
 
 import asyncio

@@ -2,16 +2,25 @@ from pydantic import BaseModel
 import subprocess
 import requests
 
+
+class DeviceState(BaseModel):
+    red: int = None
+    yellow: int = None
+    green: int = None
+    signal: int = None
+
+
 class DeviceData(BaseModel):
     ip: str
     name: str
 
     @property
-    def states(self) -> dict:
+    def states(self) -> DeviceState:
         return requests.get(f"http://{self.ip}/states").json()
 
-    def set_states(self, states: dict) -> dict:
+    def set_states(self, states: DeviceState) -> DeviceState:
         return requests.patch(f"http://{self.ip}/states", json=states).json()
+
 
 class DevicesService:
     def __init__(self):
@@ -39,13 +48,13 @@ class DevicesService:
 
     def has_device(self, name: str) -> bool:
         return name in self.devices
-    
+
     def get_device(self, name: str) -> DeviceData:
         return self.devices[name]
-    
+
     def get_device_state(self, name: str) -> dict:
         return self.devices[name].states
-    
+
     def set_device_state(self, name: str, states: dict) -> dict:
         return self.devices[name].set_states(states)
 
