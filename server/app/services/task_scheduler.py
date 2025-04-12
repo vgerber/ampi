@@ -48,7 +48,7 @@ class TaskScheduler:
             self.tasks[task_metadata.name] = task
 
     async def remove_task(self, task_name: str):
-        print(f"{task_name} completed")
+        print(f"Task {task_name} removed")
         async with self.tasks_lock:
             if not self.has_task(task_name):
                 return

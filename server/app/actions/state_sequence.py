@@ -19,6 +19,6 @@ async def run(
             continue
 
         if loop_count > 0:
-            loop_count -= 0
+            loop_count -= 1
         else:
             break

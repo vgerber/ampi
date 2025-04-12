@@ -19,7 +19,8 @@ class DeviceData(BaseModel):
         return requests.get(f"http://{self.ip}/states").json()
 
     def set_states(self, states: DeviceState) -> DeviceState:
-        return requests.patch(f"http://{self.ip}/states", json=states).json()
+        print(f"Set {self.name} state {states}")
+        return requests.patch(f"http://{self.ip}/states", json=dict(states)).json()
 
 
 class DevicesService:

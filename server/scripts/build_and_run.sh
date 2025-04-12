@@ -1,3 +1,2 @@
-cd ..
-sudo docker build -t fastapi-app .
-sudo docker run -p 8000:80 fastapi-app
+sudo docker build -t vgerber/ampi-server:local .
+sudo docker run -e PORT=8123 --network host vgerber/ampi-server:local
