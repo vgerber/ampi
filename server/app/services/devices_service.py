@@ -4,9 +4,9 @@ import requests
 
 
 class DeviceState(BaseModel):
-    red: int = None
-    yellow: int = None
-    green: int = None
+    red: bool = None
+    yellow: bool = None
+    green: bool = None
     signal: int = None
 
 
