@@ -2,13 +2,18 @@
 
 Enable your traffic light (<b>Amp</b>el) to be an <b>I</b>OT device. The traffic light is controlled by a esp controller which connects to your raspberry pi like access point.
 
-![Deployment](./doc/deployment.png)
+![AmpiRender](./doc/ampi_assembly.PNG)
+
+
+
+
 
 ## Server
 
 The server is developed to run on a raspberry pi. This device is the bridge to your 5G wifi network of lan interface.
 
 ### Setup
+![Deployment](./doc/deployment.png)
 
 As the project is intended to run on a raspberry pi, the setup steps only support this [device setup](./doc/SetupAP.md)
 
