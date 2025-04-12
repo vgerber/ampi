@@ -2,7 +2,7 @@
 
 Enable your traffic light (<b>Amp</b>el) to be an <b>I</b>OT device. The traffic light is controlled by a esp controller which connects to your raspberry pi like access point.
 
-![AmpiRender](./doc/ampi_assembly.PNG)
+![AmpiRender](./doc/ampi_assembly.png)
 
 
 
