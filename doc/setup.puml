@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+node traffic_light {
+artifact ampi_firmware
+}
+node raspi {
+artifact ampi_server
+}
+cloud user_network {
+}
+
+traffic_light -- raspi: Wifi 2.5GHz
+raspi -- user_network: Wifi 5Ghz / LAN
+@enduml
