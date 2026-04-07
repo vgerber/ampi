@@ -14,8 +14,12 @@ const int BUZZER = 5;
 
 const int LED_STATUS = 14;
 
-int led_status_set_time_ms = 0;
+unsigned long led_status_set_time_ms = 0;
 unsigned long last_wifi_reconnect_ms = 0;
+
+int led_red_value = 0;
+int led_yellow_value = 0;
+int led_green_value = 0;
 
 ESP8266WebServer server(80);
 
@@ -36,9 +40,9 @@ void sendState() {
   // Use arduinojson.org/v6/assistant to compute the capacity.
   StaticJsonDocument<96> doc;
 
-  doc["red"] = digitalRead(LED_RED);
-  doc["yellow"] = digitalRead(LED_YELLOW);
-  doc["green"] = digitalRead(LED_GREEN);
+  doc["red"] = led_red_value;
+  doc["yellow"] = led_yellow_value;
+  doc["green"] = led_green_value;
   doc["buzzer"] = digitalRead(BUZZER);
   doc["signal"] = WiFi.RSSI();
 
@@ -68,13 +72,16 @@ void setState() {
   JsonObject postObj = doc.as<JsonObject>();
   
   if(postObj.containsKey("red")){
-    digitalWrite(LED_RED, postObj["red"]);
+    led_red_value = constrain(postObj["red"].as<int>(), 0, 255);
+    analogWrite(LED_RED, led_red_value);
   }
   if(postObj.containsKey("yellow")){
-    digitalWrite(LED_YELLOW, postObj["yellow"]);
+    led_yellow_value = constrain(postObj["yellow"].as<int>(), 0, 255);
+    analogWrite(LED_YELLOW, led_yellow_value);
   }
   if(postObj.containsKey("green")){
-    digitalWrite(LED_GREEN, postObj["green"]);
+    led_green_value = constrain(postObj["green"].as<int>(), 0, 255);
+    analogWrite(LED_GREEN, led_green_value);
   }
   if(postObj.containsKey("buzzer")){
     digitalWrite(BUZZER, postObj["buzzer"]);
@@ -108,6 +115,11 @@ void setup() {
   pinMode(LED_GREEN, OUTPUT);
   pinMode(BUZZER, OUTPUT);
   pinMode(LED_STATUS, OUTPUT);
+  analogWriteRange(255);
+  analogWriteFreq(1000);
+  analogWrite(LED_RED, 0);
+  analogWrite(LED_YELLOW, 0);
+  analogWrite(LED_GREEN, 0);
   digitalWrite(LED_STATUS, 1);
   delay(100);
   digitalWrite(LED_STATUS, 0);
