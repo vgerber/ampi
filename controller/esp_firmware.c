@@ -15,6 +15,7 @@ const int BUZZER = 5;
 const int LED_STATUS = 14;
 
 int led_status_set_time_ms = 0;
+unsigned long last_wifi_reconnect_ms = 0;
 
 ESP8266WebServer server(80);
 
@@ -149,6 +150,26 @@ void setup() {
   Serial.println("HTTP server started");
 }
 
+void handle_wifi_reconnect() {
+  if (WiFi.status() == WL_CONNECTED) {
+    return;
+  }
+  unsigned long now = millis();
+  if ((now - last_wifi_reconnect_ms) < 5000) {
+    return;
+  }
+  last_wifi_reconnect_ms = now;
+  Serial.println("WiFi lost, reconnecting...");
+  WiFi.disconnect();
+  WiFi.begin(ssid, password);
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(LED_STATUS, 1);
+    delay(100);
+    digitalWrite(LED_STATUS, 0);
+    delay(100);
+  }
+}
+
 void handle_led_status() {
   if(!digitalRead(LED_STATUS)) {
     return;
@@ -159,6 +180,7 @@ void handle_led_status() {
 }
 
 void loop(void){
+  handle_wifi_reconnect();
   server.handleClient();                    // Listen for HTTP requests from clients
   handle_led_status();
 }
