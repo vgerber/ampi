@@ -21,7 +21,6 @@ const int BUZZER = 5;
 const int LED_STATUS = 14;
 
 unsigned long led_status_set_time_ms = 0;
-unsigned long last_wifi_reconnect_ms = 0;
 
 int led_red_value = 0;
 int led_yellow_value = 0;
@@ -30,6 +29,33 @@ int buzzer_value = 0;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
+
+void connect_wifi() {
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to ");
+  Serial.print(ssid); Serial.println(" ...");
+
+  int connection_attempt = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(LED_STATUS, 1);
+    delay(100);
+    Serial.print(++connection_attempt); Serial.print(' ');
+    digitalWrite(LED_STATUS, 0);
+    delay(1000);
+  }
+
+  Serial.println();
+  Serial.println("Connection established!");
+  Serial.print("IP address:\t");
+  Serial.println(WiFi.localIP());
+
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(LED_STATUS, 1);
+    delay(100);
+    digitalWrite(LED_STATUS, 0);
+    delay(100);
+  }
+}
 
 String buildStateJson() {
   JsonDocument doc;
@@ -113,30 +139,7 @@ void setup() {
   delay(100);
   digitalWrite(LED_STATUS, 0);
 
-  WiFi.begin(ssid, password);             // Connect to the network
-  Serial.print("Connecting to ");
-  Serial.print(ssid); Serial.println(" ...");
-
-  int connection_attempt = 0;
-  while (WiFi.status() != WL_CONNECTED) { // Wait for the Wi-Fi to connect
-    digitalWrite(LED_STATUS, 1);
-    delay(100);
-    Serial.print(++connection_attempt); Serial.print(' ');
-    digitalWrite(LED_STATUS, 0);
-    delay(1000);
-  }
-
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(LED_STATUS, 1);
-    delay(100);
-    digitalWrite(LED_STATUS, 0);
-    delay(100);
-  }
-
-  Serial.println('\n');
-  Serial.println("Connection established!");
-  Serial.print("IP address:\t");
-  Serial.println(WiFi.localIP());         // Send the IP address of the ESP8266 to the computer
+  connect_wifi();
 
   ws.onEvent(onWsEvent);
   server.addHandler(&ws);
@@ -159,20 +162,9 @@ void handle_wifi_reconnect() {
   if (WiFi.status() == WL_CONNECTED) {
     return;
   }
-  unsigned long now = millis();
-  if ((now - last_wifi_reconnect_ms) < 5000) {
-    return;
-  }
-  last_wifi_reconnect_ms = now;
   Serial.println("WiFi lost, reconnecting...");
   WiFi.disconnect();
-  WiFi.begin(ssid, password);
-  for (int i = 0; i < 5; i++) {
-    digitalWrite(LED_STATUS, 1);
-    delay(100);
-    digitalWrite(LED_STATUS, 0);
-    delay(100);
-  }
+  connect_wifi();
 }
 
 void handle_led_status() {
