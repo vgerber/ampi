@@ -113,11 +113,106 @@ async function applyState(deviceName, patch) {
 
 async function loadTasks() {
   try {
-    const tasks = await api("/tasks");
+    const [tasks, actions] = await Promise.all([
+      api("/tasks"),
+      api("/actions"),
+    ]);
+    renderCreateTaskForm(actions);
     renderTasks(tasks);
   } catch {
     document.getElementById("tasks-list").innerHTML =
       '<p class="empty">Failed to load tasks.</p>';
+  }
+}
+
+function renderCreateTaskForm(actions) {
+  const devices = Array.from(document.querySelectorAll("[id^='card-']")).map(
+    (el) => el.id.replace("card-", ""),
+  );
+  const container = document.getElementById("task-create");
+  container.innerHTML = `
+    <div class="card" style="margin-bottom:1rem">
+      <div class="state-grid" style="grid-template-columns: 80px 1fr; margin-bottom:0.5rem">
+        <label>Name</label>
+        <input id="task-name" type="text" placeholder="task" />
+        <label>Device</label>
+        <select id="task-device">
+          ${devices.length ? devices.map((d) => `<option value="${d}">${d}</option>`).join("") : '<option value="">— scan first —</option>'}
+        </select>
+        <label>Action</label>
+        <select id="task-action" onchange="loadActionSchema()">
+          ${actions.map((a) => `<option value="${a}">${a}</option>`).join("")}
+        </select>
+      </div>
+      <div id="task-args"></div>
+      <div class="actions-row" style="margin-top:0.75rem">
+        <button class="primary" onclick="startTask()">Start</button>
+      </div>
+    </div>`;
+  if (actions.length) loadActionSchema();
+}
+
+let currentSchema = {};
+
+async function loadActionSchema() {
+  const action = document.getElementById("task-action").value;
+  try {
+    const schema = await api(`/actions/${action}/schema`);
+    currentSchema = schema.properties ?? {};
+    const required = schema.required ?? [];
+    const argsContainer = document.getElementById("task-args");
+    const fields = Object.entries(currentSchema)
+      .filter(([key]) => key !== "device")
+      .map(([key, def]) => {
+        const isRequired = required.includes(key);
+        const placeholder =
+          def.default !== undefined ? String(def.default) : "";
+        return `
+          <div class="state-grid" style="grid-template-columns: 80px 1fr; margin-bottom:0.3rem">
+            <label>${key}${isRequired ? "*" : ""}</label>
+            <input data-arg="${key}" type="text" placeholder="${placeholder}" value="${placeholder}" />
+          </div>`;
+      })
+      .join("");
+    argsContainer.innerHTML = fields;
+  } catch {
+    document.getElementById("task-args").innerHTML = "";
+  }
+}
+
+async function startTask() {
+  const name = document.getElementById("task-name").value.trim() || "task";
+  const device_name = document.getElementById("task-device").value;
+  const action = document.getElementById("task-action").value;
+  const arguments_ = {};
+  document.querySelectorAll("[data-arg]").forEach((input) => {
+    const value = input.value.trim();
+    if (value !== "") {
+      try {
+        arguments_[input.dataset.arg] = JSON.parse(value);
+      } catch {
+        arguments_[input.dataset.arg] = value;
+      }
+    }
+  });
+  try {
+    await api("/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        device_name,
+        action,
+        arguments: arguments_,
+      }),
+    });
+    loadTasks();
+  } catch (error) {
+    const detail = await error
+      .json()
+      .then((d) => d.detail)
+      .catch(() => "Unknown error");
+    alert(`Failed to start task: ${detail}`);
   }
 }
 

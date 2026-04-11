@@ -157,6 +157,17 @@ input[type="range"] {
   font-size: 0.875rem;
   width: 12rem;
 }
+
+input[type="text"],
+select {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #eee;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  width: 100%;
+}
 #tasks-section {
   margin-top: 2rem;
 }
