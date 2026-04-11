@@ -1,0 +1,51 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ESP: Compile",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/controller/build.sh", "--compile-only"],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ESP: Upload",
+      "type": "shell",
+      "command": "/home/vincent/Software/arduino-ide/arduino-ide_2.3.4_Linux_64bit/resources/app/lib/backend/resources/arduino-cli",
+      "args": [
+        "upload",
+        "--fqbn",
+        "esp8266:esp8266:nodemcuv2",
+        "--port",
+        "/dev/ttyUSB0",
+        "${workspaceFolder}/controller"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ESP: Compile & Upload",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/controller/build.sh"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
