@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ampi</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <h1>ampi</h1>
+
+    <div class="section">
+      <h2>Devices</h2>
+      <button id="scan-btn" class="primary" onclick="scanDevices()">
+        Scan
+      </button>
+      <input
+        id="interface-input"
+        type="text"
+        value="wlan0"
+        placeholder="interface"
+      />
+      <div id="devices-list">
+        <p class="empty">No devices loaded. Click Scan.</p>
+      </div>
+    </div>
+
+    <div class="section" id="tasks-section">
+      <h2>Tasks</h2>
+      <button onclick="loadTasks()" style="margin-bottom: 1rem">Refresh</button>
+      <div id="tasks-list"><p class="empty">No running tasks.</p></div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

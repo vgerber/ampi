@@ -1,26 +1,59 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional
 import subprocess
+import json
 import requests
+import websocket
 
 
 class DeviceState(BaseModel):
-    red: bool = None
-    yellow: bool = None
-    green: bool = None
-    signal: int = None
+    red: Optional[int] = None
+    yellow: Optional[int] = None
+    green: Optional[int] = None
+    buzzer: Optional[int] = None
+    signal: Optional[int] = None
 
 
 class DeviceData(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     ip: str
     name: str
+    connection: Optional[websocket.WebSocket] = Field(default=None, exclude=True)
 
     @property
     def states(self) -> DeviceState:
-        return requests.get(f"http://{self.ip}/states").json()
+        try:
+            self.connection.send("{}")
+            data = json.loads(self.connection.recv())
+        except Exception:
+            self._reconnect()
+            self.connection.send("{}")
+            data = json.loads(self.connection.recv())
+        return DeviceState(**data)
 
     def set_states(self, states: DeviceState) -> DeviceState:
-        print(f"Set {self.name} state {states}")
-        return requests.patch(f"http://{self.ip}/states", json=dict(states)).json()
+        payload = {
+            key: value
+            for key, value in states.model_dump().items()
+            if value is not None and key != "signal"
+        }
+        try:
+            self.connection.send(json.dumps(payload))
+            data = json.loads(self.connection.recv())
+        except Exception:
+            self._reconnect()
+            self.connection.send(json.dumps(payload))
+            data = json.loads(self.connection.recv())
+        return DeviceState(**data)
+
+    def _reconnect(self):
+        try:
+            self.connection.close()
+        except Exception:
+            pass
+        self.connection = websocket.create_connection(f"ws://{self.ip}/ws", timeout=5)
+        self.connection.recv()  # consume initial state sent on connect
 
 
 class DevicesService:
@@ -31,20 +64,30 @@ class DevicesService:
         # Get devices connected to access point on interface
         arpa = subprocess.check_output(("arp", "-a")).decode("ascii")
         entries = arpa.split("\n")
-        ips = [e.split(" ")[1][1:-1] for e in entries if e.split(" ")[-1] == interface]
+        ips = [
+            entry.split(" ")[1][1:-1]
+            for entry in entries
+            if entry.split(" ")[-1] == interface
+        ]
 
         self.devices = {}
 
-        for ip in ips:
+        for ip_address in ips:
             try:
-                if not requests.get(f"http://{ip}/ampi", timeout=3).text.startswith(
-                    "ampi-client"
-                ):
+                if not requests.get(
+                    f"http://{ip_address}/ampi", timeout=3
+                ).text.startswith("ampi-client"):
                     continue
-                name = requests.get(f"http://{ip}/name").text
-                self.devices[name] = DeviceData(ip=ip, name=name)
-            except Exception as ex:
-                print(ex)
+                name = requests.get(f"http://{ip_address}/name").text
+                connection = websocket.create_connection(
+                    f"ws://{ip_address}/ws", timeout=5
+                )
+                connection.recv()  # consume initial state sent on connect
+                self.devices[name] = DeviceData(
+                    ip=ip_address, name=name, connection=connection
+                )
+            except Exception as error:
+                print(error)
         return list(self.devices.values())
 
     def has_device(self, name: str) -> bool:

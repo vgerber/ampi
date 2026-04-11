@@ -46,6 +46,21 @@
         "panel": "shared"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Server: Start (dev)",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "fastapi", "dev", "app/main.py"],
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
     }
   ]
 }

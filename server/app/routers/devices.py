@@ -23,10 +23,13 @@ def list_devices(
 def get_device_states(
     device_name: str,
     devices_service: DevicesServiceDep,
-) -> dict:
+) -> DeviceState:
     if not devices_service.has_device(device_name):
         raise HTTPException(status_code=404, detail=f"Device {device_name} not found")
-    return devices_service.get_device_state(device_name)
+    try:
+        return devices_service.get_device_state(device_name)
+    except Exception as error:
+        raise HTTPException(status_code=502, detail=str(error))
 
 
 @devices_router.patch("/{device_name}/states", status_code=200)
@@ -37,4 +40,7 @@ def update_device_states(
 ) -> DeviceState:
     if not devices_service.has_device(device_name):
         raise HTTPException(status_code=404, detail=f"Device {device_name} not found")
-    return devices_service.set_device_state(device_name, states=states)
+    try:
+        return devices_service.set_device_state(device_name, states=states)
+    except Exception as error:
+        raise HTTPException(status_code=502, detail=str(error))
