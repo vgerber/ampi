@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    network_mode: host
+    environment:
+      - PORT=5678
+    restart: unless-stopped

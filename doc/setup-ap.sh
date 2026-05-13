@@ -36,9 +36,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$IFACE" ]]; then
-    # Prefer TP-Link USB dongles (interface names starting with "wx")
+    # Prefer TP-Link USB dongles (interface names starting with "wlx")
     IFACE=$(nmcli -t -f TYPE,DEVICE device \
-        | awk -F: '$1=="wifi" && $2~/^wx/{print $2; exit}')
+        | awk -F: '$1=="wifi" && $2~/^wlx/{print $2; exit}')
 fi
 
 if [[ -z "$IFACE" ]]; then
